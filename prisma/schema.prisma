@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "cockroachdb"
+    url      = env("DATABASE_URL")
+}
+
+model Example {
+    id String @id @default(cuid())
+}
+
+// Neccessary for Next auth
+model Account {
+    id                String  @id @default(cuid())
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String?
+    access_token      String?
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String?
+    session_state     String?
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+    id                String        @id @default(cuid())
+    name              String?
+    email             String?       @unique
+    emailVerified     DateTime?
+    image             String?
+    accounts          Account[]
+    sessions          Session[]
+    admin_roles       Admin[]
+    participant_roles Participant[]
+    judge_roles       Judge[]
+}
+
+model VerificationToken {
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
+
+model Organisation {
+    id      String    @id @default(cuid())
+    name    String?
+    admins  Admin[]
+    Contest Contest[]
+}
+
+model Admin {
+    id             String       @id @default(cuid())
+    is_superadmin  Boolean
+    contests       Contest[]
+    userId         String
+    organisationId String
+    user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+}
+
+model Contest {
+    id             String        @id @default(cuid())
+    config         Json
+    entries        Entry[]
+    participants   Participant[]
+    admins         Admin[]
+    organisationId String
+    organisation   Organisation  @relation(fields: [organisationId], references: [id])
+}
+
+model Participant {
+    id        String  @id @default(cuid())
+    entries   Entry[]
+    userId    String
+    contestId String
+    user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    contest   Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+}
+
+model Judge {
+    id     String @id @default(cuid())
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Entry {
+    id            String      @id @default(cuid())
+    contestId     String
+    participantId String
+    contest       Contest     @relation(fields: [contestId], references: [id], onDelete: Cascade)
+    participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
