@@ -6,7 +6,14 @@
 import { serverSchema } from "./schema.mjs";
 import { env as clientEnv, formatErrors } from "./client.mjs";
 
-const _serverEnv = serverSchema.safeParse(process.env);
+const _serverEnv = serverSchema.safeParse({
+	GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+	GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+	DATABASE_URL: process.env.DATABASE_URL,
+	NODE_ENV: process.env.NODE_ENV,
+	NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+	NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+});
 
 if (!_serverEnv.success) {
 	console.error(
