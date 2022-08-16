@@ -1,9 +1,11 @@
 import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
-const New: NextPage = () => {
-	let organisation = "cpb";
+const NewApp: NextPage = () => {
+	const router = useRouter();
+	const { slug } = router.query;
 	return (
 		<>
 			<Head>
@@ -15,17 +17,10 @@ const New: NextPage = () => {
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
 			<section className="container mx-auto px-4">
-				<h1 className="font-extrabold text-center text-7xl">Signup</h1>
-				<ul>
-					<li>
-						<Link href={`/admin/${organisation}`}>
-							Create an organisation or Join an existing one
-						</Link>
-					</li>
-				</ul>
+				<h1 className="font-extrabold text-center text-7xl">Manage: {slug}</h1>
 			</section>
 		</>
 	);
 };
 
-export default New;
+export default NewApp;
