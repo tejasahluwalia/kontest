@@ -63,30 +63,55 @@ model VerificationToken {
 }
 
 model Organisation {
-    id      String    @id @default(cuid())
-    name    String?
-    admins  Admin[]
-    Contest Contest[]
+    id       String              @id @default(cuid())
+    slug     String              @unique
+    name     String
+    contests Contest[]
+    invites  Invite[]
+    admins   OrganisationAdmin[]
 }
 
 model Admin {
+    id            String              @id @default(cuid())
+    contests      ContestAdmin[]
+    userId        String              @unique
+    user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+    organisations OrganisationAdmin[]
+}
+
+model OrganisationAdmin {
     id             String       @id @default(cuid())
-    is_superadmin  Boolean
-    contests       Contest[]
-    userId         String
-    organisationId String
-    user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    organisationId String       @unique
+    adminId        String       @unique
     organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+    admin          Admin        @relation(fields: [adminId], references: [id], onDelete: Cascade)
+    is_superadmin  Boolean
+
+    @@unique([organisationId, adminId])
+}
+
+model ContestAdmin {
+    id         String  @id @default(cuid())
+    contestId  String  @unique
+    adminId    String  @unique
+    contest    Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+    admin      Admin   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+    is_creator Boolean
+
+    @@unique([contestId, adminId])
 }
 
 model Contest {
-    id             String        @id @default(cuid())
+    id             String         @id @default(cuid())
     config         Json
+    slug           String         @unique
+    name           String
     entries        Entry[]
     participants   Participant[]
-    admins         Admin[]
-    organisationId String
-    organisation   Organisation  @relation(fields: [organisationId], references: [id])
+    admins         ContestAdmin[]
+    invites        Invite[]
+    organisationId String?
+    organisation   Organisation?  @relation(fields: [organisationId], references: [id])
 }
 
 model Participant {
@@ -110,4 +135,15 @@ model Entry {
     participantId String
     contest       Contest     @relation(fields: [contestId], references: [id], onDelete: Cascade)
     participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+model Invite {
+    id             String        @id @default(cuid())
+    email          String        @unique
+    token          String        @unique
+    role           String
+    contestId      String?
+    contest        Contest?      @relation(fields: [contestId], references: [id], onDelete: Cascade)
+    organisationId String?
+    organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 }
